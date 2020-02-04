@@ -1,20 +1,42 @@
-#ifndef GAME_OBJECT
-#define GAME_OBJECT
+#ifndef AIV_GAME_OBJECT
+#define AIV_GAME_OBJECT
 
 
-#include "vec2.h"
+#include <utility>
+#include <memory>
+#include <SDL2/SDL_rect.h>
 
 
 namespace aiv {
 
 
+struct timer;
+struct renderer;
+struct input_component;
+struct physics_component;
+
+
 struct game_object {
-    virtual ~game_object() = default;
+    void update(timer &);
+    void draw(renderer &);
 
-    virtual void update(float) = 0;
-    virtual void draw() const = 0;
+    SDL_Rect & identity();
+    const SDL_Rect & identity() const;
 
-    vec2 position;
+    double vy() const;
+    void vy(double);
+
+    int vx() const;
+    void vx(int);
+
+    void input(std::unique_ptr<input_component>);
+    void physics(std::unique_ptr<physics_component>);
+
+private:
+    std::unique_ptr<input_component> cinput;
+    std::unique_ptr<physics_component> cphysics;
+    std::pair<double, int> vel;
+    SDL_Rect ident;
 };
 
 

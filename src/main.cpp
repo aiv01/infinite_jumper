@@ -1,105 +1,48 @@
-#include <optional>
-#include <variant>
-#include <any>
+#include <memory>
+#include <unordered_map>
+#include <SDL2/SDL.h>
+#include "env/env.h"
+#include "game_object/command.h"
+#include "game_object/game_object.h"
+#include "game_object/quit_command.h"
+#include "game_object/jump_command.h"
+#include "game_object/move_left_command.h"
+#include "game_object/move_right_command.h"
+#include "game_object/sdl_input_component.h"
+#include "game_object/standard_physics_component.h"
+#include "renderer/renderer.h"
+#include "utility/timer.h"
 
-struct clazz { void f() const {} };
-
-std::optional<clazz> func(bool b) {
-    if(b) { return clazz{}; }
-    return {};
-}
 
 int main() {
-    if(const auto instance = func(true); instance) { // operator bool()
-        instance->f();
-        // ...
+    aiv::env env{};
+    aiv::renderer renderer{};
+
+    if(env && renderer) {
+        aiv::timer timer;
+        bool exit{false};
+
+        std::unordered_map<SDL_Scancode, std::unique_ptr<aiv::command>> mapping;
+        mapping[SDL_SCANCODE_END] = std::make_unique<aiv::quit_command>(exit);
+        // TODO ...
+
+        aiv::game_object obj{};
+        obj.input(std::make_unique<aiv::sdl_input_component>(std::move(mapping)));
+        obj.physics(std::make_unique<aiv::standard_physics_component>());
+
+        while(!exit) {
+            renderer.color(0, 0, 0, 1);
+            renderer.clear();
+            renderer.color(255, 0, 0, 1);
+
+            obj.update(timer);
+            obj.draw(renderer);
+
+            renderer.present();
+        }
+
+        // TODO ...
     }
 
-    auto i = 2; // i -> int
-
-    std::any a{}; // a -> any, any contiene un intero
-    a = 3;
-    a = 'c';
-
-    char c = std::any_cast<char>(a);
-
-    std::variant<int, char> var;
-    var = 1;
-
-    std::visit([](auto value) {
-        if constexpr(std::is_same_v<decltype(value), int>) {
-            // ...
-        } else {
-            // ...
-        }
-    }, var);
-
-
-    var = 'c';
-
-    std::visit([](auto value) {
-        if constexpr(std::is_same_v<decltype(value), int>) {
-            // ...
-        } else {
-            // ...
-        }
-    }, var);
+    return !env;
 }
-
-
-class any {
-    template<typename T>
-    static void destroy(void *ptr) { delete static_cast<T *>(ptr); }
-
-    template<typename T>
-    static void * copy(void *ptr) { return new T{*static_cast<T*>(ptr)}; }
-
-public:
-    any(): ptr{nullptr}, destr{nullptr}, cpy{nullptr} {}
-    ~any() { if(destr) destr(ptr); }
-
-    any(const any &other): any{} {
-        if(other.cpy) {
-            ptr = other.cpy(other.ptr);
-            cpy = other.cpy;
-            destr = other.destr;
-        }
-    }
-
-    any(any &&other): ptr{other.ptr}, destr{other.destr} {
-        other.ptr = nullptr;
-    }
-
-    any & operator=(const any &other) {
-        if(&other != this) {
-            auto tmp{other};
-            std::swap(tmp, *this);
-        }
-
-        return *this;
-    }
-
-    any & operator=(any &&other) {
-        if(&other != this) {
-            auto tmp{std::move(other)};
-            std::swap(tmp, *this);
-        }
-
-        return *this;
-    }
-
-    template<typename T>
-    any & operator=(T value) {
-        ptr = new T{value};
-        destr = &destroy<T>;
-        copy = &copy<T>;
-    }
-
-private:
-    using destr_type = void(void *);
-    using copy_type = void *(void *);
-
-    copy_type *cpy;
-    destr_type *destr;
-    void *ptr;
-};
