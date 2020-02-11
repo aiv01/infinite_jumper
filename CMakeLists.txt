@@ -25,38 +25,5 @@ endif(ASAN)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${aiv_SOURCE_DIR}/cmake/module)
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-find_package(SDL2_mixer REQUIRED)
-find_package(SDL2_ttf REQUIRED)
-
+add_subdirectory(deps)
 add_subdirectory(src)
-add_executable(always_in_vertical ${AIV_SOURCES})
-
-target_include_directories(
-    always_in_vertical
-    PRIVATE ${SDL2_INCLUDE_DIR}
-    PRIVATE ${SDL2_IMAGE_INCLUDE_DIRS}
-    PRIVATE ${SDL2_MIXER_INCLUDE_DIRS}
-    PRIVATE ${SDL2_TTF_INCLUDE_DIRS}
-)
-
-target_link_libraries(
-    always_in_vertical
-    PRIVATE ${SDL2_LIBRARY}
-    PRIVATE ${SDL2_IMAGE_LIBRARIES}
-    PRIVATE ${SDL2_MIXER_LIBRARIES}
-    PRIVATE ${SDL2_TTF_LIBRARIES}
-)
-
-install(
-    DIRECTORY
-        ${aiv_SOURCE_DIR}/assets/png
-        ${aiv_SOURCE_DIR}/assets/ttf
-    DESTINATION ${aiv_BINARY_DIR}/game
-)
-
-install(
-    TARGETS always_in_vertical
-    DESTINATION ${aiv_BINARY_DIR}/game
-)

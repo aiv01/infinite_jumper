@@ -1,4 +1,4 @@
-file(GLOB_RECURSE DINO_HEADERS *.hpp *.h)
+file(GLOB_RECURSE AIV_HEADERS *.hpp *.h)
 
 set(
     AIV_SOURCES
@@ -14,6 +14,24 @@ set(
     ${aiv_SOURCE_DIR}/src/game_object/standard_physics_component.cpp
     ${aiv_SOURCE_DIR}/src/renderer/renderer.cpp
     ${aiv_SOURCE_DIR}/src/utility/timer.cpp
-    PARENT_SCOPE
 )
 
+add_executable(always_in_vertical)
+
+target_sources(always_in_vertical PRIVATE ${AIV_SOURCES})
+target_include_directories(always_in_vertical PRIVATE SDL2main SDL2)
+target_link_libraries(always_in_vertical PRIVATE SDL2main SDL2)
+
+install(
+    DIRECTORY
+        ${aiv_SOURCE_DIR}/assets/png
+        ${aiv_SOURCE_DIR}/assets/ttf
+    DESTINATION ${aiv_BINARY_DIR}/game
+)
+
+install(
+    TARGETS always_in_vertical
+    DESTINATION ${aiv_BINARY_DIR}/game
+)
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${AIV_SOURCES})
